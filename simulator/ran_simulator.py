@@ -9,13 +9,11 @@ The `KPIDataGenerator` class generates synthetic data for KPIs related to teleco
 The provided code demonstrates the usage of these classes by creating instances of the classes, generating synthetic data for towers and KPIs, and saving the generated data to CSV files.
 """
 
-import random 
-import os 
+import random
 import pandas as pd 
 
 from datetime import datetime, timedelta
 from dataclasses import dataclass
-from pathlib import Path 
 from faker import Faker
 
 class TowerDataGenerator:
@@ -98,8 +96,8 @@ class TelecomKPI:
     All KPIs to generate.
 
     Attributes:
-    site_name: str
-        Name of the telecommunications tower site.
+    tower_id: str
+        Identifier of the telecommunications tower site.
     layer: int
         Layer of the telecommunications tower site.
     timestamp: datetime
@@ -144,7 +142,7 @@ class TelecomKPI:
         Number of failed calls.
     """
 
-    site_name: str
+    tower_id: str
     layer: int
     timestamp: datetime
     rsrp: float
@@ -249,7 +247,7 @@ class KPIDataGenerator:
     def generate_failed_calls(self, total_call_volume, successful_calls):
         return total_call_volume - successful_calls
 
-    def generate_kpi_record(self, site_name) -> TelecomKPI:
+    def generate_kpi_record(self, tower_id) -> TelecomKPI:
 
         layer = self.generate_layer()
         timestamp = datetime.now() - timedelta(minutes=random.randint(0, 60))
@@ -274,7 +272,7 @@ class KPIDataGenerator:
         failed_calls = self.generate_failed_calls(total_call_volume, successful_calls)
 
         return TelecomKPI(
-            site_name,
+            tower_id,
             layer,
             timestamp,
             rsrp,
@@ -302,9 +300,9 @@ class KPIDataGenerator:
         records = [self.generate_kpi_record(site_name) for _ in range(n_records)]
         return pd.DataFrame([record.__dict__ for record in records])
 
-    def generate_kpis_data(self, site_names, n_records_per_site):
+    def generate_kpis_data(self, tower_ids, n_records_per_site):
         all_kpis = pd.DataFrame()
-        for site_name in site_names:
-            site_kpis = self.generate_kpis_data_for_site(site_name, n_records_per_site)
-            all_kpis = pd.concat([all_kpis, site_kpis], ignore_index=True)
+        for tower_id in tower_ids:
+            tower_kpis = self.generate_kpis_data_for_site(tower_id, n_records_per_site)
+            all_kpis = pd.concat([all_kpis, tower_kpis], ignore_index=True)
         return all_kpis
