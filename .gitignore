@@ -123,6 +123,8 @@ celerybeat.pid
 
 # Environments
 data
+logs 
+plugins
 .env
 .venv
 env/
