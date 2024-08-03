@@ -1,0 +1,86 @@
+version: '3'
+
+services:
+  db-application:
+    container_name: "db-application"
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_APP_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_APP_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_APP_DB}
+    volumes:
+      - postgres_app_data:/var/lib/postgresql/data 
+    restart: always
+  
+  db-airflow:
+    container_name: "db-airflow"
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_AIRFLOW_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_AIRFLOW_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_AIRFLOW_DB}
+    volumes:
+      - postgres_airflow_data:/var/lib/postgresql/data 
+    restart: always
+
+  airflow-init:
+    container_name: 'airflow_init'
+    image: apache/airflow:latest
+    depends_on:
+      - db-airflow
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_AIRFLOW_USER}:${POSTGRES_AIRFLOW_PASSWORD}@db-airflow/${POSTGRES_AIRFLOW_DB}
+    entrypoint: >
+      /bin/bash -c "
+      airflow db upgrade && 
+      airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.org --password admin
+      "
+  
+  airflow-webserver:
+    container_name: 'airflow-webserver'
+    image: apache/airflow:latest
+    depends_on:
+      - db-airflow
+      - airflow-init
+    command: webserver
+    ports:
+      - 8080:8080
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_AIRFLOW_USER}:${POSTGRES_AIRFLOW_PASSWORD}@db-airflow/${POSTGRES_AIRFLOW_DB}
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./data:/opt/airflow/data
+      - ./simulator:/opt/airflow/simulator
+      - ./src:/opt/airflow/src
+    restart: always
+
+  airflow-scheduler:
+    container_name: 'airflow-scheduler'
+    image: apache/airflow:latest
+    depends_on:
+      - db-airflow
+      - airflow-init
+    command: scheduler
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_AIRFLOW_USER}:${POSTGRES_AIRFLOW_PASSWORD}@db-airflow/${POSTGRES_AIRFLOW_DB}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./data:/opt/airflow/data
+      - ./simulator:/opt/airflow/simulator
+      - ./src:/opt/airflow/src
+    restart: always
+
+volumes:
+  postgres_airflow_data:
+  postgres_app_data:
