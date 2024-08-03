@@ -8,12 +8,12 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 streamlit = "^1.37.0"
-Faker = "^26.1.0"
 sqlalchemy = "^2.0.31"
 pandas = "^2.2.2"
 python-dotenv = "^1.0.1"
 pydantic = "^2.8.2"
 black = "^24.8.0"
+faker = "^26.1.0"
 
 
 [build-system]
