@@ -1,6 +1,6 @@
 """
 This module is responsible for generating CSV data for telecom towers and their associated KPIs.
-The data is generated using the `TowerGenerator` and `KPIDataGenerator` classes.
+The data is generated using the `TowerDataGenerator` and `KPIDataGenerator` classes.
 The generated data is stored in separate directories for towers and KPIs.
 """
 
@@ -19,11 +19,11 @@ sys.path.insert(
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from ran_simulator import TowerGenerator, KPIDataGenerator
+from ran_simulator import TowerDataGenerator, KPIDataGenerator
 
 default_args = {
     "owner": "adminstrator",
-    "start_date": datetime(2024, 7, 26),
+    "start_date": datetime(2024, 8, 7),
     "retries": 5,
     "retry_delay": timedelta(minutes=5),
 }
@@ -36,8 +36,11 @@ dag = DAG(
     catchup=False,
 )
 
-NUM_TOWERS = os.getenv("NUM_TOWERS")
-NUM_RECORDS_PER_TOWER = os.getenv("NUM_RECORDS_PER_TOWER")
+# NUM_TOWERS = os.getenv("NUM_TOWERS")
+# NUM_RECORDS_PER_TOWER = os.getenv("NUM_RECORDS_PER_TOWER")
+NUM_TOWERS = 2
+NUM_RECORDS_PER_TOWER = 5
+
 DATA_TOWERS_PATH = Path("/opt/airflow/data/towers")
 DATA_KPIS_PATH = Path("/opt/airflow/data/kpis")
 
@@ -51,8 +54,8 @@ def generate_data_task(**kwargs):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
     if not os.listdir(DATA_TOWERS_PATH):
-        tower_generator = TowerGenerator(n_towers=NUM_TOWERS)
-        towers_df = tower_generator.generate_data()
+        tower_generator = TowerDataGenerator(n_towers=NUM_TOWERS)
+        towers_df = tower_generator.generate_towers()
         towers_df.to_csv(
             DATA_TOWERS_PATH.joinpath(f"towers_data_{timestamp}.csv"), index=False
         )
@@ -61,14 +64,9 @@ def generate_data_task(**kwargs):
         towers_df = pd.read_csv(DATA_TOWERS_PATH.joinpath(towers_df_name))
 
     kpis_generator = KPIDataGenerator()
-    kpis_df_list = []
-    for tower_name in towers_df["tower_id"]:
-        kpis_df = kpis_generator.generate_kpis_data_for_site(
-            site_name=tower_name, n_records=NUM_RECORDS_PER_TOWER
-        )
-        kpis_df_list.append(kpis_df)
-
-    kpis_df = pd.concat(kpis_df_list, ignore_index=True)
+    kpis_df = kpis_generator.generate_kpis_data(
+        tower_ids=towers_df["tower_id"], num_records_per_tower=NUM_RECORDS_PER_TOWER
+    )
     kpis_df.to_csv(DATA_KPIS_PATH.joinpath(f"kpis_data_{timestamp}.csv"), index=False)
 
 
