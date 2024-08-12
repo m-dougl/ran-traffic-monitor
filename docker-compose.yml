@@ -39,10 +39,10 @@ services:
       airflow db upgrade && 
       airflow users create --username admin --firstname admin --lastname admin --role Admin --email admin@example.org --password admin
       "
-  
+    
   airflow-webserver:
     container_name: 'airflow-webserver'
-    image: apache/airflow:latest
+    build: .
     depends_on:
       - db-airflow
       - airflow-init
@@ -64,7 +64,7 @@ services:
 
   airflow-scheduler:
     container_name: 'airflow-scheduler'
-    image: apache/airflow:latest
+    build: .
     depends_on:
       - db-airflow
       - airflow-init
@@ -84,3 +84,7 @@ services:
 volumes:
   postgres_airflow_data:
   postgres_app_data:
+
+networks:
+  airflow:
+    driver: bridge
