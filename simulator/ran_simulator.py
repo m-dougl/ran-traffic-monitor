@@ -64,7 +64,7 @@ class TowerDataGenerator:
             )
 
             if (lat, lng) not in locations:
-                locations.add(lat, lng)
+                locations.add((lat, lng))
                 latitudes.append(lat)
                 longitudes.append(lng)
                 cities.append(city)
@@ -79,7 +79,9 @@ class TowerDataGenerator:
             df (pd.DataFrame): Dataframe with all generated towers.
         """
         towers_ids = self._generate_tower_id()
-        latitudes, longitudes, cities, states = self._generate_locations()
+        latitudes, longitudes, cities, states = self._generate_locations(
+            country_code="BR"
+        )
 
         df = pd.DataFrame(
             {
@@ -300,13 +302,17 @@ class KPIDataGenerator:
             failed_calls,
         )
 
-    def generate_kpis_data_for_site(self, site_name, n_records):
-        records = [self.generate_kpi_record(site_name) for _ in range(n_records)]
-        return pd.DataFrame([record.__dict__ for record in records])
+    # def generate_kpis_data_for_site(self, tower_id, n_records):
+    #    records = [self.generate_kpi_record(tower_id) for _ in range(n_records)]
+    #    return pd.DataFrame([record.__dict__ for record in records])
 
-    def generate_kpis_data(self, tower_ids, n_records_per_site):
-        all_kpis = pd.DataFrame()
+    def generate_kpis_data(self, tower_ids, num_records_per_tower: int) -> pd.DataFrame:
+        records = []
+
         for tower_id in tower_ids:
-            tower_kpis = self.generate_kpis_data_for_site(tower_id, n_records_per_site)
-            all_kpis = pd.concat([all_kpis, tower_kpis], ignore_index=True)
-        return all_kpis
+            for _ in range(num_records_per_tower):
+                kpi_record = self.generate_kpi_record(tower_id)
+                records.append(kpi_record.__dict__)
+
+        df = pd.DataFrame(records)
+        return df
