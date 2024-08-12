@@ -29,7 +29,7 @@ dag = DAG(
     dag_id="el_dag",
     description="Extract and Load DAG",
     schedule_interval=timedelta(minutes=1),
-    start_date=datetime(2024, 7, 26),
+    start_date=datetime(2024, 7, 8),
     catchup=False,
 )
 
@@ -60,7 +60,7 @@ def to_database_kpis(**kwargs):
 
 
 def clean_data_path(**kwargs):
-    shutil.rmtree(Path("/opt/airflow/data/kpis"))
+    shutil.rmtree(DATA_KPIS_PATH)
 
 
 init_db_task = PythonOperator(task_id="init_db_task", python_callable=init_db, dag=dag)
@@ -78,8 +78,8 @@ delete_dir_task = PythonOperator(
 )
 
 (
-    wait_for_generator_dag
-    >> init_db_task
+    #wait_for_generator_dag
+    init_db_task
     >> to_database_tower_task
     >> to_database_kpis_task
     >> delete_dir_task
