@@ -13,12 +13,21 @@ try:
     POSTGRES_APP_USER = os.getenv("POSTGRES_APP_USER")
     POSTGRES_APP_PASSWORD = os.getenv("POSTGRES_APP_PASSWORD")
     POSTGRES_APP_DB = os.getenv("POSTGRES_APP_DB")
-    POSTGRES_APP_HOST = os.getenv("POSTGRES_APP_HOST", "app_database")
+    POSTGRES_APP_HOST = os.getenv("POSTGRES_APP_HOST")
+    POSTGRES_APP_PORT = os.getenv("POSTGRES_APP_PORT")
 
-    if not all([POSTGRES_APP_USER, POSTGRES_APP_PASSWORD, POSTGRES_APP_DB]):
+    if not all(
+        [
+            POSTGRES_APP_USER,
+            POSTGRES_APP_PASSWORD,
+            POSTGRES_APP_DB,
+            POSTGRES_APP_HOST,
+            POSTGRES_APP_PORT,
+        ]
+    ):
         raise ValueError("One or more environment variables are missing")
 
-    DATABASE = f"postgresql+psycopg2://{POSTGRES_APP_USER}:{POSTGRES_APP_PASSWORD}@{POSTGRES_APP_HOST}/{POSTGRES_APP_DB}"
+    DATABASE = f"postgresql+psycopg2://{POSTGRES_APP_USER}:{POSTGRES_APP_PASSWORD}@{POSTGRES_APP_HOST}:{POSTGRES_APP_PORT}/{POSTGRES_APP_DB}"
     engine = create_engine(DATABASE)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -26,7 +35,7 @@ try:
 
 except Exception as e:
     logger.error(f"Error setting up database: {e}")
-    raise
+    raise ValueError(f"Error setting up database: {e}")
 
 
 def init_db():
@@ -35,7 +44,7 @@ def init_db():
         logger.info("Database initialized successfully")
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
-        raise
+        raise ValueError(f"Error initializing database: {e}")
 
 
 def get_session() -> Session:

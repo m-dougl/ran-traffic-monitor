@@ -2,16 +2,23 @@
 This module provides functions for CRUD (creating, reading, updating, and deleting) data in a database.
 """
 
+import logging
+from typing import Type, Union
+
+import pandas as pd
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+
 from database import get_session
 from models import TowerModel, KPIModel
 from schemas import TowerSchema, KPISchema
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
-from typing import Type, Union
-import pandas as pd
 
 ModelType = Union[TowerModel, KPIModel]
 SchemaType = Union[TowerSchema, KPISchema]
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def create_data(
@@ -25,8 +32,11 @@ def create_data(
                 instance = model(**val_data.model_dump())
                 session.add(instance)
             session.commit()
-        except IntegrityError:
-            print("This data already exists in the database")
+            logger.info("Data successfully created in the database.")
+        except IntegrityError as e:
+            logger.error(f"IntegrityError: {e}")
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
 
 
 def read_data(model: Type[ModelType]) -> pd.DataFrame:
@@ -70,7 +80,7 @@ def read_towers() -> pd.DataFrame:
     return read_data(model=TowerModel)
 
 
-def read_tower(tower_name: str) -> TowerModel:
+def read_tower(tower_name: str) -> Union[TowerModel, None]:
     """Read a specific tower from the database."""
     with get_session() as session:
         result = session.execute(
@@ -89,7 +99,7 @@ def read_kpis_from_tower(tower_name: str) -> pd.DataFrame:
     return read_data_by_field(model=KPIModel, field_name="site_name", value=tower_name)
 
 
-def update_data(model: Type[ModelType], identifier: dict, updates: dict):
+def update_data(model: Type[ModelType], identifier: dict, updates: dict) -> None:
     """Update data in the database."""
     with get_session() as session:
         result = session.execute(select(model).filter_by(**identifier)).first()
@@ -98,6 +108,9 @@ def update_data(model: Type[ModelType], identifier: dict, updates: dict):
             for key, value in updates.items():
                 setattr(data, key, value)
             session.commit()
+            logger.info(f"Data updated for {identifier} in {model.__name__}.")
+        else:
+            logger.warning(f"No data found for {identifier} in {model.__name__}.")
 
 
 def update_tower(tower_name: str, updates: dict) -> None:
@@ -113,8 +126,9 @@ def delete_data(model: Type[ModelType], identifier: dict) -> None:
             data = result[0]
             session.delete(data)
             session.commit()
+            logger.info(f"Data deleted for {identifier} in {model.__name__}.")
         else:
-            print(f"Record not found for {identifier} in {model.__name__}")
+            logger.warning(f"No data found for {identifier} in {model.__name__}.")
 
 
 def delete_tower(tower_name: str) -> None:
@@ -125,3 +139,21 @@ def delete_tower(tower_name: str) -> None:
 def delete_kpi_row(kpi_id: int) -> None:
     """Delete a specific KPI row from the database."""
     delete_data(model=KPIModel, identifier={"id": kpi_id})
+
+
+if __name__ == "__main__":
+    from database import init_db
+
+    init_db()
+
+    # df = pd.read_csv('./data/towers/towers_data_20240807230626.csv')
+    # create_data(data=df, model=TowerModel, schema=TowerSchema)
+    #
+    # data = read_towers()
+    # print(data)
+    # df = pd.read_csv('./data/kpis/kpis_data_20240807231641.csv')
+    # create_data(data=df, model=KPIModel, schema=KPISchema)
+    #
+    # data = read_kpis()
+    data = read_towers()
+    print(data)

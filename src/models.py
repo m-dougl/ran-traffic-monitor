@@ -1,5 +1,5 @@
 from sqlalchemy.orm import relationship, declarative_base
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Index
 
 Base = declarative_base()
 
@@ -14,7 +14,10 @@ class TowerModel(Base):
     city = Column(String, nullable=False)
     state = Column(String, nullable=False)
 
-    kpis = relationship("KPIModel", back_populates="tower")
+    kpis = relationship(
+        "KPIModel", back_populates="tower", cascade="all, delete-orphan"
+    )
+    __table_args__ = (Index("ix_towers_tower_id", "tower_id"),)
 
 
 class KPIModel(Base):
@@ -45,3 +48,8 @@ class KPIModel(Base):
     failed_calls = Column(Integer, nullable=False)
 
     tower = relationship("TowerModel", back_populates="kpis")
+
+    __table_args__ = (
+        Index("ix_kpi_tower_id", "tower_id"),
+        Index("ix_kpi_timestamp", "timestamp"),
+    )
