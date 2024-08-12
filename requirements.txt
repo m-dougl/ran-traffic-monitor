@@ -1,0 +1,7 @@
+apache-airflow
+psycopg2-binary 
+Faker
+pandas
+pydantic
+python-dotenv
+SQLAlchemy
