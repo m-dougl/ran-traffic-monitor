@@ -1,4 +1,7 @@
 # RAN Traffic Monitor
+
+![Project Architecture](assets/diagram.png)
+
 This project is a **RAN (Radio Access Network) Traffic Monitoring System** designed to simulate, process, and store data related to telecommunications towers and their associated KPIs (Key Performance Indicators). The system leverages **Apache Airflow** for workflow orchestration, **PostgreSQL** for data storage, and **Python** for data simulation and processing.
 
 ## Features
@@ -11,23 +14,23 @@ This project is a **RAN (Radio Access Network) Traffic Monitoring System** desig
 - **Workflow Orchestration**: Uses Apache Airflow to automate data generation, ingestion, and cleanup tasks.
 
 ## Project Structure
-.
-├── dags/ # Airflow DAGs for workflow orchestration
-│	└── [el_dag.py] # Extract and Load DAG
-│	└── [simulator_dag.py] # Data simulation DAG
-├── simulator/ # Data simulation logic
-│	└── [ran_simulator.py] # Tower and KPI data generators
-├── src/ # Core application logic
-│	 └── [crud.py] # CRUD operations for the database
-│	 └── [database.py] # Database connection and initialization
-│	 └── [models.py] # SQLAlchemy models for database tables
-│	 └── [schemas.py] # Pydantic schemas for data validation
-├── .gitignore # Git ignore file
-├── [docker-compose.yml] # Docker Compose configuration
-├── Dockerfile # Dockerfile for building the Airflow image
-├── [requirements.txt] # Python dependencies
-└── [README.md] # Project documentation
-
+```
+├── dags/                     # Airflow DAGs for workflow orchestration
+│   ├── el_dag.py             # Extract and Load DAG
+│   ├── simulator_dag.py      # Data simulation DAG
+├── simulator/                # Data simulation logic
+│   └── ran_simulator.py      # Tower and KPI data generators
+├── src/                      # Core application logic
+│   ├── crud.py               # CRUD operations for the database
+│   ├── database.py           # Database connection and initialization
+│   ├── models.py             # SQLAlchemy models for database tables
+│   ├── schemas.py            # Pydantic schemas for data validation
+├── .gitignore                # Git ignore file
+├── docker-compose.yml        # Docker Compose configuration
+├── Dockerfile                # Dockerfile for building the Airflow image
+├── requirements.txt          # Python dependencies
+└── README.md                 # Project documentation
+```
 ## Prerequisites
 
 - **Docker** and **Docker Compose** installed on your system.
