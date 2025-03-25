@@ -1,6 +1,6 @@
 # RAN Traffic Monitor
 
-![Project Architecture](assets/diagram.png)
+![Project Architecture](assets/diagram.svg)
 
 This project is a **RAN (Radio Access Network) Traffic Monitoring System** designed to simulate, process, and store data related to telecommunications towers and their associated KPIs (Key Performance Indicators). The system leverages **Apache Airflow** for workflow orchestration, **PostgreSQL** for data storage, and **Python** for data simulation and processing.
 
